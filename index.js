@@ -1,8 +1,8 @@
 const express = require('express');
 const mysql = require('mysql2');
-const Sequelize = require('sequelize');
+// const Sequelize = require('sequelize');
 const bodyParser = require('body-parser');
-
+const sequelize = require('./config')
 //routes
 const authRouter = require('./routes/auth');
 const fileRouter = require('./routes/file');
@@ -24,34 +24,34 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // const Response = require('./domain/response');
 
 // db connection via Sequelize ORM
-const sequelize = new Sequelize(
-    'erp.aero.db',
-    'user',
-    'password', {
-    dialect: 'mysql',
-    dialectOptions: {
-        port: 3307,
-        host: 'localhost',
-    }
-});
+// const sequelize = new Sequelize(
+//     'erp.aero.db',
+//     'user',
+//     'password', {
+//     dialect: 'mysql',
+//     dialectOptions: {
+//         port: 3307,
+//         host: 'localhost',
+//     }
+// });
 
 // db authentication
-sequelize.authenticate().then(() => {
-    console.log('Connection has been established successfully.');
-}).catch((error) => {
-    console.error('Unable to connect to the database: ', error);
-});
+// sequelize.authenticate().then(() => {
+//     console.log('Connection has been established successfully.');
+// }).catch((error) => {
+//     console.error('Unable to connect to the database: ', error);
+// });
 
-const blog_table = sequelize.define(
-    'blog_table',
-    {
-        title: Sequelize.STRING,
-        desc: Sequelize.TEXT
-    },
-    { tableName: 'blog_table' }
-);
+// const blog_table = sequelize.define(
+//     'blog_table',
+//     {
+//         title: Sequelize.STRING,
+//         desc: Sequelize.TEXT
+//     },
+//     { tableName: 'blog_table' }
+// );
 
-blog_table.sync({ force: 'true' });
+// blog_table.sync({ force: 'true' });
 
 
 // const con = mysql.createConnection({
@@ -101,6 +101,19 @@ app.get('/test', (req, res) => {
 app.use('/', authRouter);
 app.use('/file', fileRouter);
 
-app.listen(port, () => {
-    console.log(`Service API was started on port: ${port}`);
-});
+
+sequelize.sync()
+    .then(() => {
+        app.listen(port, () => {
+            console.log(`Service API was started on port: ${port}`);
+        });
+    })
+    .catch((err)=> {
+        console.log('Unable to sync database: ', err);
+    })
+
+
+
+// app.listen(port, () => {
+//     console.log(`Service API was started on port: ${port}`);
+// });
