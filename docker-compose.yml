@@ -15,5 +15,18 @@ services:
     volumes:
       - erp-aero-db:/var/lib/mysql
 
+  redis:
+    container_name: redis
+    image: redis:7.0.10-alpine
+    # command: redis-server /usr/local/etc/redis/redis.conf --requirepass mypassword
+    restart: always
+    ports:
+      - 6379:6379
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - cache:/data
+
 volumes:
   erp-aero-db:
+  cache:
