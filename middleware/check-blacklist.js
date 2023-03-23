@@ -1,25 +1,20 @@
 const client = require('./../blacklist');
+const jwt = require('jsonwebtoken');
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
-        console.log(`!!! token from req: ${token}`);
-        client.get('token', (err, data) => {
+
+        const { email, iat, exp } = await jwt.verify(token, process.env.JWT_SECRET);
+        client.get(email, (err, data) => {
             if (err) throw err;
             if (data && data === token) {
-                // const blackedJwt = data;
-                // console.log(data);
-                // console.log('....from redis...', data);
-                res.status(401).json({message: 'current token no longer valid, please do sign in again'})
-                // next();
+                res.status(401).json({ message: 'current token no longer valid, please do sign in again' });
             }
-            else{
-                next();
-            }
+            else next();
         });
     }
     catch (err) {
         res.status(401).json({ message: 'Auth failed!' });
     }
-
 };

@@ -25,7 +25,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/test', passport.authenticate('jwt', { session: false }), (req, res) => {
+app.get('/test', checkBlacklist, passport.authenticate('jwt', { session: false }), (req, res) => {
     res.json({ message: 'some vulnerable info ....)))))' });
 });
 // app.get('/test', checkBlacklist, passport.authenticate('jwt', { session: false }), (req, res) => {
