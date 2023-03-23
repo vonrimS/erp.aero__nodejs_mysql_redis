@@ -17,18 +17,9 @@ module.exports = (req, res, next) => {
                 next();
             }
         });
-        // console.log(`!!! token from blacklist: ${blackedToken}`);
-
-        // if (token && token === client.get('token')) {
-        //     return res.status(401).json({ message: 'Authentication failed. Token is no longer valid' });
-        // }
-        // else {
-        //     next();
-
-        // }
     }
     catch (err) {
         res.status(401).json({ message: 'Auth failed!' });
     }
-    // next();
+
 };

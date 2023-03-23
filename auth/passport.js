@@ -13,7 +13,8 @@ passport.use(
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         secretOrKey: process.env.JWT_SECRET
     }, (jwtPayload, done) => {
-        console.log(jwtPayload);
+        console.log('extra info: ', jwtPayload);
+
         return User.findOne({ where: { email: jwtPayload.email } })
             .then(user => {
                 return done(null, user);

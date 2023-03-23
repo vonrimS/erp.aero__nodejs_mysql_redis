@@ -101,7 +101,6 @@ router.post('/signin/new_token', async (req, res) => {
 
 
 
-
 router.get('/info', checkBlacklist, passport.authenticate('jwt', { session: false }), (req, res) => {
     const authHeader = req.headers.authorization;
     console.log(authHeader, '++++');
