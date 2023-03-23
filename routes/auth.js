@@ -1,9 +1,8 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const router = express.Router();
-
+const passport = require('passport');
 const client = require('../blacklist');
 const checkBlacklist = require('../middleware/check-blacklist')
 
@@ -59,12 +58,14 @@ router.post('/signup', async (req, res) => {
     }
 });
 
-router.get('/info', (req, res) => {
+
+router.get('/info', checkBlacklist, passport.authenticate('jwt', { session: false }), (req, res) => {
     const authHeader = req.headers.authorization;
     console.log(authHeader, '++++');
     // res.send({ blacklist: blacklist });
     res.send('[info] is working');
 });
+
 
 router.get('/logout', (req, res) => {
     // Clear all data from cache
@@ -76,7 +77,7 @@ router.get('/logout', (req, res) => {
         if (err){
             console.log(err);
         } else {
-            res.send({message: 'User logged out. Current token is no longer valid'})
+            res.status(200).json({message: 'User logged out. Current token is no longer valid'})
         }
     });
 });
