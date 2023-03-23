@@ -4,6 +4,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const router = express.Router();
 
+const client = require('../blacklist');
+const checkBlacklist = require('../middleware/check-blacklist')
+
 
 router.post('/signin', async (req, res) => {
     const { email, password } = req.body;
@@ -57,17 +60,25 @@ router.post('/signup', async (req, res) => {
 });
 
 router.get('/info', (req, res) => {
-    res.send({ blacklist: blacklist });
-    // res.send('[info] is working');
+    const authHeader = req.headers.authorization;
+    console.log(authHeader, '++++');
+    // res.send({ blacklist: blacklist });
+    res.send('[info] is working');
 });
 
 router.get('/logout', (req, res) => {
+    // Clear all data from cache
+    client.flushall();
+    // Get current token from input request headers
     const token = req.headers.authorization.split(' ')[1];
-    console.log(token);
-
-
-    res.send({message: 'logged out'})
-
+    // Add current token to cached blacklist with expiration not longer than token TTL
+    client.set('token', token, 'PX', process.env.JWT_EXPIRATION, (err, result) => {
+        if (err){
+            console.log(err);
+        } else {
+            res.send({message: 'User logged out. Current token is no longer valid'})
+        }
+    });
 });
 
 module.exports = router;
