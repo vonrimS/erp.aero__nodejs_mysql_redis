@@ -1,32 +1,47 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const mime = require('mime-types');
+const File = require('../models/File');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+const passport = require('passport');
+const checkBlacklist = require('../middleware/check-blacklist');
 
-const User = require('../models/file');
 
 
-router.post('/upload', (req, res)=> {
-    res.send('[upload] is working');
-})
+router.post(
+  '/upload',
+  checkBlacklist,
+  passport.authenticate('jwt', { session: false }),
+  upload.single('file'),
+  async (req, res) => {
 
-router.get('/list', (req, res)=> {
-    res.send('[list] is working');
-})
+    const file = req.file;
 
-router.delete('/delete/:id', (req, res)=> {
-    res.send('[delete/:id] is working');
-})
+    if (!file) {
+      return res.status(400).json({ error: 'No file was uploaded' });
+    }
 
-router.get('/:id', (req, res)=> {
-    res.send('[get/:id] is working');
-})
+    const newFile = await File.create({
+      filename: file.originalname,
+      extension: path.extname(file.originalname),
+      mimeType: mime.contentType(file.originalname),
+      fileSize: file.size,
+      dateUploaded: new Date(),
+      fileContent: file.buffer
+    }).catch(err => {
+      res.json({ error: 'Cannot upload new file' });
+    });
 
-router.get('/download/:id', (req, res)=> {
-    res.send('[download/:id] is working');
-})
+    if (newFile) {
+      res.json({ message: 'File uploaded successfully' });
+    }
+  }
+);
 
-router.put('/update/:id', (req, res)=> {
-    res.send('[upload] is working');
-})
+
 
 
 module.exports = router;

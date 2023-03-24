@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const passport = require('passport');
 const client = require('../blacklist');
+const passport = require('passport');
 const checkBlacklist = require('../middleware/check-blacklist');
 
 
@@ -82,6 +82,7 @@ router.post('/signin', async (req, res) => {
     res.json({ message: 'Welcome back!', token: jwtToken });
 
 });
+
 
 // Assuming that refresh token stored securely on client side from initial signup response
 router.post('/signin/new_token', async (req, res) => {
