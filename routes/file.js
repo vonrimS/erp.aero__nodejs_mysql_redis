@@ -6,6 +6,8 @@ const mime = require('mime-types');
 const File = require('../models/File');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+const fs = require('fs');
+
 
 
 router.post(
@@ -67,6 +69,24 @@ router.get(
 router.get(
   '/:id',
   async (req, res) => {
+    const id = req.params.id;
+
+    const file = await File.findOne({
+      where: { id },
+      attributes: {
+        exclude: ['fileContent']
+      }
+    }).catch(err => {
+      console.log('Error: ', err);
+    });
+
+    (file) ? res.status(200).send({ file }) : res.status(404).json({ message: 'File not found' });
+
+  });
+
+
+
+router.delete('/delete/:id', async (req, res) => {
   const id = req.params.id;
 
   const file = await File.findOne({
@@ -78,10 +98,46 @@ router.get(
     console.log('Error: ', err);
   });
 
-  (file) ? res.status(200).send({file}) : res.status(404).json({message: 'File not found'}) ;
+  if (!file) {
+    return res.status(404).json({ error: 'File not found' });
+  }
 
+  // TODO: Delete file from local storage here...
+
+  await file.destroy();
+
+  res.json({ message: 'File deleted successfully' });
 });
 
+
+
+router.get('/download/:id', async (req, res) => {
+  const id = req.params.id;
+
+  const file = await File.findByPk(id);
+
+  if (!file) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+
+  //TODO: Download file from local storage here...
+
+  // Save file to disk
+  const filePath = path.join(__dirname, '../downloads', file.filename);
+  fs.writeFileSync(filePath, file.fileContent, { encoding: 'binary' });
+
+  // Send file to client for download
+  const stream = fs.createReadStream(filePath);
+  const stat = fs.statSync(filePath);
+  res.setHeader('Content-Length', stat.size);
+  res.setHeader('Content-Type', file.mimeType);
+  res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+  stream.pipe(res);
+
+  console.log(`File downloaded: ${file.filename}`);
+
+  res.json({ message: 'File downloaded successfully' });
+});
 
 
 module.exports = router;
