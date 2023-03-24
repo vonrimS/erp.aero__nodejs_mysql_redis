@@ -140,4 +140,43 @@ router.get('/download/:id', async (req, res) => {
 });
 
 
+router.put(
+  '/update/:id',
+  upload.single('file'),
+  async (req, res) => {
+    const id = req.params.id;
+
+    const newFile = req.file;
+
+    if (!newFile) {
+      return res.status(400).json({ error: 'No file was uploaded' });
+    }
+
+    let file = await File.findOne({
+      where: { id }
+    }).catch(err => {
+      console.log('Error: ', err);
+    });
+
+    if (!file) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    file.set({
+      filename: newFile.originalname,
+      extension: path.extname(newFile.originalname),
+      mimeType: mime.contentType(newFile.originalname),
+      fileSize: newFile.size,
+      updatedAt: new Date(),
+      fileContent: newFile.buffer
+    });
+
+    file = await file.save();
+
+    // //TODO: Update file in local storage here...
+
+    res.json({ message: 'File updated successfully' });
+  });
+
+
 module.exports = router;
