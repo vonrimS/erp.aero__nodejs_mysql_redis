@@ -42,6 +42,32 @@ router.post(
 );
 
 
+router.get(
+  '/list',
+  checkBlacklist,
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+
+    const pageSize = parseInt(req.query.list_size) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * pageSize;
+
+    const files = await File.findAndCountAll({
+      limit: pageSize,
+      offset: offset,
+      attributes: {
+        exclude: ['fileContent']
+      }
+    });
+
+    const totalPages = Math.ceil(files.count / pageSize);
+
+    res.json({
+      files: files.rows,
+      page: page,
+      totalPages: totalPages
+    });
+  });
 
 
 module.exports = router;
