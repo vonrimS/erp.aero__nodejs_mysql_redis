@@ -7,12 +7,13 @@ const sequelize = require('./config');
 //routes
 const authRouter = require('./routes/auth');
 const fileRouter = require('./routes/file');
+
 const passport = require('passport');
-
-// const client = require('./auth/blacklist');
 const checkBlacklist = require('./middleware/check-blacklist')
-
 require('./auth/passport');
+
+const checkJwt = passport.authenticate('jwt', { session: false });
+
 
 const app = express();
 const port = process.env.PORT;
@@ -28,15 +29,20 @@ app.use((req, res, next) => {
 app.get('/test', checkBlacklist, passport.authenticate('jwt', { session: false }), (req, res) => {
     res.json({ message: 'some vulnerable info ....)))))' });
 });
-// app.get('/test', checkBlacklist, passport.authenticate('jwt', { session: false }), (req, res) => {
-//     res.json({ message: 'some vulnerable info ....)))))' });
-// });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// routes
+
+// Routes
 app.use('/', authRouter);
+
+
+// Check current token is not blacklisted
+app.use(checkBlacklist);
+// Check current token is valid
+app.use(checkJwt);
+
 app.use('/file', fileRouter);
 
 

@@ -6,15 +6,10 @@ const mime = require('mime-types');
 const File = require('../models/File');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-const passport = require('passport');
-const checkBlacklist = require('../middleware/check-blacklist');
-
 
 
 router.post(
   '/upload',
-  checkBlacklist,
-  passport.authenticate('jwt', { session: false }),
   upload.single('file'),
   async (req, res) => {
 
@@ -44,8 +39,6 @@ router.post(
 
 router.get(
   '/list',
-  checkBlacklist,
-  passport.authenticate('jwt', { session: false }),
   async (req, res) => {
 
     const pageSize = parseInt(req.query.list_size) || 10;
@@ -67,7 +60,28 @@ router.get(
       page: page,
       totalPages: totalPages
     });
+  }
+);
+
+
+router.get(
+  '/:id',
+  async (req, res) => {
+  const id = req.params.id;
+
+  const file = await File.findOne({
+    where: { id },
+    attributes: {
+      exclude: ['fileContent']
+    }
+  }).catch(err => {
+    console.log('Error: ', err);
   });
+
+  (file) ? res.status(200).send({file}) : res.status(404).json({message: 'File not found'}) ;
+
+});
+
 
 
 module.exports = router;
